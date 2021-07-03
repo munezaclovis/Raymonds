@@ -1,0 +1,14 @@
+{
+    "name": "carter/raymonds",
+    "description": "A simple PHP framework for building web applications",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "munezaclovis",
+            "email": "mugaro234@gmail.com"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "require": {}
+}
