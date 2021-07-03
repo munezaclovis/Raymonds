@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Raymonds\DatabaseConnection;
 
 use PDO;
+use PDOException;
 use Raymonds\DatabaseConnection\DatabaseConnectionInterface;
 use Raymonds\DatabaseConnection\Exception\DatabaseConnectionException;
 
@@ -13,7 +14,7 @@ class DatabaseConnection implements DatabaseConnectionInterface
     /**
      * @var PDO
      */
-    protected PDO $db;
+    protected PDO $connection;
 
     /**
      * @var array
@@ -43,15 +44,16 @@ class DatabaseConnection implements DatabaseConnectionInterface
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
             ];
 
-            $this->db = new PDO(
+            $this->connection = new PDO(
                 $this->credentials['dsn'],
                 $this->credentials['username'],
                 $this->credentials['password'],
                 $params
             );
-        } catch (\PDOException $exception) {
-            throw new DatabaseConnectionException($exception->getMessage(), $exception->getCode());
+        } catch (PDOException $exception) {
+            throw new DatabaseConnectionException($exception->getMessage(), (int) $exception->getCode());
         }
+        return $this->connection;
     }
 
     /**
@@ -59,6 +61,6 @@ class DatabaseConnection implements DatabaseConnectionInterface
      */
     public function close(): void
     {
-        $this->db = null;
+        $this->connection = null;
     }
 }

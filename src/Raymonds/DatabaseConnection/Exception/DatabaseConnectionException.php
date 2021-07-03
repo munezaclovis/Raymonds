@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Raymonds\DatabaseConnection\Exception;
 
-use PDO;
 use PDOException;
 
 class DatabaseConnectionException extends PDOException
