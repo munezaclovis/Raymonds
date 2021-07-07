@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Raymonds\Router;
 
-use Exception;
+use Raymonds\Router\Exception\RouterBadMethodCallException;
+use Raymonds\Router\Exception\RouterException;
 use Raymonds\Router\RouterInterface;
 
 class Router implements RouterInterface
@@ -52,13 +53,13 @@ class Router implements RouterInterface
                 if (\is_callable([$controllerObject, $action])) {
                     $controllerObject->$action();
                 } else {
-                    throw new Exception();
+                    throw new RouterBadMethodCallException();
                 }
             } else {
-                throw new Exception();
+                throw new RouterException();
             }
         } else {
-            throw new Exception();
+            throw new RouterException();
         }
     }
 

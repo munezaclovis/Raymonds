@@ -1,14 +1,39 @@
 {
-    "name": "carter/raymonds",
-    "description": "A simple PHP framework for building web applications",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "munezaclovis",
-            "email": "mugaro234@gmail.com"
-        }
-    ],
-    "minimum-stability": "alpha",
-    "require": {}
+  "name": "carter/raymonds",
+  "description": "A simple PHP framework for building web applications",
+  "type": "library",
+  "license": "MIT",
+  "readme": "",
+  "support": {
+    "issues": "https://github.com/munezaclovis/Raymonds/issues",
+    "source": "https://github.com/munezaclovis/Raymonds",
+    "wiki": "https://github.com/munezaclovis/Raymonds/wiki"
+  },
+  "authors": [
+    {
+      "name": "munezaclovis",
+      "email": "mugaro234@gmail.com",
+      "role": "Developer"
+    }
+  ],
+  "minimum-stability": "alpha",
+  "autoload": {
+    "psr-4": {
+      "Raymonds\\": "src/Raymonds"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Raymonds\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": "8.0",
+    "ext-mbstring": "*",
+    "ext-iconv": "*",
+    "ext-pdo": "*",
+    "ext-json": "*",
+    "ext-curl": "*",
+    "ext-simplexml": "*"
+  }
 }
