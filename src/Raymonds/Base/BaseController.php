@@ -22,7 +22,7 @@ class BaseController
     public function render(string $template, array $data = [])
     {
         if ($this->twig === null) {
-            throw new BaseLogicException('Twig is not available');
+            throw new BaseLogicException('A required package extension "twig/twig" is missing.');
         }
         return $this->twig->getTemplate($template, $data);
     }
