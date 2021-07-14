@@ -73,6 +73,9 @@ class Crud implements CrudInterface
 
     /**
      * @inheritDoc
+     *
+     * @param array $fields
+     * @return boolean
      */
     public function create(array $fields = []): bool
     {
@@ -94,8 +97,14 @@ class Crud implements CrudInterface
 
     /**
      * @inheritDoc
+     *
+     * @param array $selectors
+     * @param array $conditions
+     * @param array $parameters
+     * @param array $optional
+     * @return array
      */
-    public function read(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array
+    public function select(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array
     {
         try {
             $args = [
@@ -105,7 +114,7 @@ class Crud implements CrudInterface
                 'conditions' => $conditions,
                 'params' => $parameters,
             ];
-            $query = $this->queryBuilder->buildQuery($args)->insertQuery();
+            $query = $this->queryBuilder->buildQuery($args)->selectQuery();
             $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($conditions, $parameters));
             if ($this->dataMapper->numRows() > 0) {
                 return $this->dataMapper->results();
@@ -117,8 +126,12 @@ class Crud implements CrudInterface
 
     /**
      * @inheritDoc
+     *
+     * @param array $fields
+     * @param string $primaryKey
+     * @return boolean
      */
-    public function update(array $fields = [], string $primaryKey): bool
+    public function update(string $primaryKey, array $fields = []): bool
     {
         try {
             $args = [
@@ -139,6 +152,9 @@ class Crud implements CrudInterface
 
     /**
      * @inheritDoc
+     *
+     * @param array $conditions
+     * @return boolean
      */
     public function delete(array $conditions = []): bool
     {
@@ -160,6 +176,10 @@ class Crud implements CrudInterface
 
     /**
      * @inheritDoc
+     *
+     * @param array $selectors
+     * @param array $conditions
+     * @return array
      */
     public function search(array $selectors = [], array $conditions = []): array
     {
@@ -182,8 +202,12 @@ class Crud implements CrudInterface
 
     /**
      * @inheritDoc
+     *
+     * @param string $rawQuery
+     * @param array|null $conditions
+     * @return boolean
      */
-    public function rawQuery(string $rawQuery, array $conditions = []): bool
+    public function rawQuery(string $rawQuery, ?array $conditions = []): bool
     {
         try {
             $args = [

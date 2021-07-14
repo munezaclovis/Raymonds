@@ -11,5 +11,5 @@ interface EntityManagerInterface
      *
      * @return Object
      */
-    public function getCrud(): Object;
+    public function getCrud(): CrudInterface;
 }

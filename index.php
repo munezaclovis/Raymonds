@@ -1,4 +1,5 @@
 <?php
+use Raymonds\Orm\OrmManager;
 
 function dnd($data)
 {
@@ -13,6 +14,9 @@ function pnd($data)
     print_r($data);
     echo "</pre>";
 }
+
+
+$em = new OrmManager()
 
 $uri = $_SERVER['REQUEST_URI'];
 pnd(parse_url($uri));

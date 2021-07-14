@@ -44,7 +44,7 @@ interface CrudInterface
      * @param array $optional
      * @return array
      */
-    public function read(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array;
+    public function select(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array;
 
     /**
      * update row in database
@@ -53,7 +53,7 @@ interface CrudInterface
      * @param string $primaryKey
      * @return boolean
      */
-    public function update(array $fields = [], string $primaryKey): bool;
+    public function update(string $primaryKey, array $fields = []): bool;
 
     /**
      * delete row from database

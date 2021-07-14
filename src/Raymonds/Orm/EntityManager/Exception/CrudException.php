@@ -6,6 +6,6 @@ namespace Raymonds\Orm\EntityManager\Exception;
 
 use Exception;
 
-class EntityManagerException extends Exception
+class CrudException extends Exception
 {
 }
