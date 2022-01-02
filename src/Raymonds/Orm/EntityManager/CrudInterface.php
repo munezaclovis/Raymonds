@@ -33,7 +33,7 @@ interface CrudInterface
      * @param array $fields
      * @return bool
      */
-    public function create(array $fields = []): bool;
+    public function save(array $args = []): bool;
 
     /**
      * reacd/select row(s) from database
@@ -44,7 +44,7 @@ interface CrudInterface
      * @param array $optional
      * @return array
      */
-    public function select(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array;
+    public function select(array $args = []): array;
 
     /**
      * update row in database
@@ -53,7 +53,7 @@ interface CrudInterface
      * @param string $primaryKey
      * @return boolean
      */
-    public function update(string $primaryKey, array $fields = []): bool;
+    public function update(array $args): bool;
 
     /**
      * delete row from database
@@ -61,7 +61,7 @@ interface CrudInterface
      * @param array $conditions
      * @return boolean
      */
-    public function delete(array $conditions = []): bool;
+    public function delete(array $args = []): bool;
 
     /**
      * search row(s) in database
@@ -70,7 +70,7 @@ interface CrudInterface
      * @param array $conditions
      * @return array
      */
-    public function search(array $selectors = [], array $conditions = []): array;
+    public function search(array $args = []): array;
 
     /**
      * execute raw query in database

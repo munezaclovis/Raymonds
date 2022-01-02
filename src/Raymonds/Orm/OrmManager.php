@@ -6,11 +6,11 @@ namespace Raymonds\Orm;
 
 use Raymonds\Orm\EntityManager\Crud;
 use Raymonds\Orm\QueryBuilder\QueryBuilder;
-use Raymonds\Orm\DataMapper\DataMapperFactory;
-use Raymonds\Orm\QueryBuilder\QueryBuilderFactory;
 use Raymonds\DatabaseConnection\DatabaseConnection;
+use Raymonds\Orm\DataMapper\DataMapper;
 use Raymonds\Orm\DataMapper\DataMapperConfiguration;
-use Raymonds\Orm\EntityManager\EntityManagerFactory;
+use Raymonds\Orm\EntityManager\EntityManager;
+use Raymonds\Yaml\Config;
 
 class OrmManager
 {
@@ -18,25 +18,20 @@ class OrmManager
 
     protected string $primaryKey;
 
-    protected DataMapperConfiguration $environmentConfiguration;
-
-    public function __construct(DataMapperConfiguration $environmentConfiguration, string $tableName, string $primaryKey)
+    public function __construct(string $tableName, string $primaryKey)
     {
-        $this->environmentConfiguration = new $environmentConfiguration;
         $this->tableName = $tableName;
         $this->primaryKey = $primaryKey;
     }
 
-    public function initialize()
+    public function initialize(): Crud
     {
-        $dataMapperFactory = new DataMapperFactory();
-        $dataMapper = $dataMapperFactory->create(DatabaseConnection::class, DataMapperConfiguration::class);
+        $credentials = (new DataMapperConfiguration(Config::file('database')['driver']))->getDatabaseCredentials(Config::file('app')['database_driver']);
+        $dataMapper = new DataMapper(new DatabaseConnection($credentials));
         if ($dataMapper) {
-            $queryBuilderFactory = new QueryBuilderFactory();
-            $queryBuilder = $queryBuilderFactory->create(QueryBuilder::class);
+            $queryBuilder = new QueryBuilder;
             if ($queryBuilder) {
-                $entityManagerFactory = new EntityManagerFactory($dataMapper, $queryBuilder);
-                return $entityManagerFactory->create(Crud::class, $this->tableName, $this->primaryKey);
+                return new Crud($dataMapper, $queryBuilder, $this->tableName, $this->primaryKey);
             }
         }
     }

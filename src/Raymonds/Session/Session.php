@@ -70,12 +70,12 @@ class Session implements SessionInterface
         $this->storage->invalidate();
     }
 
-    public function flush(string $key, mixed $value)
+    public function flush(string $key, mixed $value = null)
     {
         try {
             $this->storage->flush($key, $value);
         } catch (\Throwable $th) {
-            throw new SessionException();
+            throw new SessionException($th->getMessage());
         }
     }
 

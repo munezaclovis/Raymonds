@@ -19,7 +19,8 @@
   "minimum-stability": "alpha",
   "autoload": {
     "psr-4": {
-      "Raymonds\\": "src/Raymonds"
+      "Raymonds\\": "src/Raymonds",
+      "App\\": "App"
     }
   },
   "autoload-dev": {
@@ -36,6 +37,11 @@
     "ext-curl": "*",
     "ext-simplexml": "*",
     "twig/twig": "^3.3",
-    "symfony/http-foundation": "^5.3"
+    "symfony/http-foundation": "^5.3",
+    "filp/whoops": "^2.14",
+    "symfony/yaml": "^5.3"
+  },
+  "require-dev": {
+    "fzaninotto/faker": "^1.5"
   }
 }

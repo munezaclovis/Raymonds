@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Raymonds\Session;
 
 use Raymonds\Session\Storage\SessionStorage;
+use Raymonds\Yaml\Config;
 
 class SessionManager
 {
 
-    public function initialize()
+    public static function initialize()
     {
-        $factory = new SessionFactory();
-        return $factory->create('', SessionStorage::class, array());
+        return new Session('RaymondsCore', new SessionStorage(Config::file('session')));
     }
 }

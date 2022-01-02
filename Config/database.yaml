@@ -1,0 +1,9 @@
+driver:
+  mysql:
+    dsn: 'mysql:host=localhost;dbname=mvc;charset=utf8mb4'
+    username: 'root'
+    password: ''
+  pgsql:
+    dsn: 'pgsql:host=localhost;dbname=mvc;charset=utf8mb4'
+    username: 'root'
+    password: ''

@@ -6,23 +6,23 @@ namespace Raymonds\Orm\DataRepository;
 
 interface DataRepositoryInterface
 {
-    public function find(int $id): array;
+    public function find(array $args): array;
 
     public function findAll(): array;
 
-    public function findBy(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array;
+    public function findById(int $id): array;
 
-    public function findOneBy(array $conditions): array;
+    public function findOneBy(array $args): array;
 
-    public function findObjectBy(array $selectors = [], array $conditions = []): Object;
+    public function findObjectBy(array $args): Object;
 
-    public function search(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array;
+    public function search(array $args): array;
 
-    public function delete(array $conditions = []): bool;
+    public function delete(array $args): bool;
 
-    public function update(string $primaryKey, array $conditions = []): bool;
+    public function update(array $args): bool;
 
-    public function searchByPaging(array $args, Object $request): array;
+    public function searchByPaging(array $args): array;
 
-    public function findAndReturn(int $id, array $selectors): self;
+    public function findAndReturn(array $args): self;
 }

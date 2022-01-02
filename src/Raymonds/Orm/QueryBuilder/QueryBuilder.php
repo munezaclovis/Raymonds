@@ -25,19 +25,18 @@ class QueryBuilder implements QueryBuilderInterface
      */
     protected const SQL_DEFAULT = [
         'conditions' => [],
-        'selectors' => [],
         'replace' => false,
         'distinct' => false,
         'form' => [],
         'where' => null,
-        'and' => [],
-        'or' => [],
         'orderBy' => [],
         'fields' => [],
+        'values' => [],
         'primary_key' => '',
         'table' => '',
         'type' => '',
         'raw' => '',
+        'limit' => 100
     ];
 
     /**
@@ -63,8 +62,8 @@ class QueryBuilder implements QueryBuilderInterface
         if (count($args) < 0) {
             throw new QueryBuilderInvalidArgumentException();
         }
-        $arg = array_merge(self::SQL_DEFAULT, $args);
-        $this->key = $arg;
+        $args = array_merge(self::SQL_DEFAULT, $args);
+        $this->key = $args;
         return $this;
     }
 
@@ -105,9 +104,9 @@ class QueryBuilder implements QueryBuilderInterface
     public function selectQuery(): string
     {
         if ($this->isValidQueryType('select')) {
-            $selectors = (!empty($this->key['selectors'])) ? implode(', ', $$this->key['selectors']) : '*';
-            $this->sqlQuery = "SELECT {$selectors} FROM {$this->key['table']}";
-            $this->sqlQuery = $this->hasConditions();
+            $fields = (!empty($this->key['fields'])) ? implode(', ', $this->key['fields']) : '*';
+            $this->sqlQuery = "SELECT {$fields} FROM {$this->key['table']}";
+            $this->sqlQuery .= $this->hasConditions();
             return $this->sqlQuery;
         }
         return false;
@@ -132,6 +131,8 @@ class QueryBuilder implements QueryBuilderInterface
                 if (isset($this->key['primary_key']) && $this->key['primary_key'] === '0') {
                     unset($this->key['primary_key']);
                     $this->sqlQuery = "UPDATE {$this->key['table']} SET {$valuesFields}";
+                    $this->sqlQuery .= $this->hasConditions();
+                    return $this->sqlQuery;
                 }
                 return $this->sqlQuery;
             }
@@ -145,14 +146,7 @@ class QueryBuilder implements QueryBuilderInterface
     public function deleteQuery(): string
     {
         if ($this->isValidQueryType('delete')) {
-            $index = array_keys($this->key['conditions']);
-            $this->sqlQuery = "DELETE FROM {$this->key['table']} WHERE {$index[0]} = :{$index[0]} LIMIT 1";
-            $bulkDelete = array_values($this->key['fields']);
-            if (is_array($bulkDelete) && count($bulkDelete) > 1) {
-                for ($i = 0; $i < count($bulkDelete); $i++) {
-                    $this->sqlQuery = "DELETE FROM {$this->key['table']} WHERE {$index[0]} = :{$index[0]}";
-                }
-            }
+            $this->sqlQuery = "DELETE FROM {$this->key['table']} WHERE {$this->key['primary_key']} = :{$this->key['primary_key']} LIMIT 1";
             return $this->sqlQuery;
         }
         return false;
@@ -176,9 +170,9 @@ class QueryBuilder implements QueryBuilderInterface
     public function searchQuery(): string
     {
         if ($this->isValidQueryType('search')) {
-            $selectors = (!empty($this->key['selectors'])) ? implode(', ', $$this->key['selectors']) : '*';
-            $this->sqlQuery = "SELECT {$selectors} FROM {$this->key['table']}";
-            $this->sqlQuery = $this->hasConditions();
+            $fields = (!empty($this->key['fields'])) ? implode(', ', $$this->key['fields']) : '*';
+            $this->sqlQuery = "SELECT {$fields} FROM {$this->key['table']}";
+            $this->sqlQuery .= $this->hasConditions();
             return $this->sqlQuery;
         }
         return false;
@@ -191,29 +185,33 @@ class QueryBuilder implements QueryBuilderInterface
      */
     private function hasConditions(): string
     {
-        if (isset($this->key['conditions']) && $this->key['conditions' != '']) {
+        $sqlQuery = '';
+        if (isset($this->key['conditions']) && $this->key['conditions'] != '') {
             if (is_array($this->key['conditions'])) {
                 $sort = [];
-                foreach (array_keys($this->key['conditions']) as $where) {
+                $conditions = $this->key['conditions']['OR'] ?? $this->key['conditions']['or'] ?? $this->key['conditions'];
+                foreach (array_keys($conditions) as $where) {
                     if (isset($where) && $where != '') {
                         $sort[] = $where . " = :" . $where;
                     }
                 }
                 if (count($this->key['conditions']) > 0) {
-                    $this->sqlQuery .= " WHERE " . implode(" AND ", $sort);
+                    if (array_key_exists('OR', $this->key['conditions'])) {
+                        $sqlQuery .= " WHERE " . implode(" OR ", $sort);
+                    } else {
+                        $sqlQuery .= " WHERE " . implode(" AND ", $sort);
+                    }
                 }
             }
-        } else if (empty($this->key['conditions'])) {
-            $this->sqlQuery .= " WHERE 1";
         }
 
-        if (isset($this->key['orderBy']) && $this->key['orderBy'] != '') {
-            $this->sqlQuery .= " ORDER BY {$this->key['orderBy']}";
+        if (isset($this->key['orderBy']) && $this->key['orderBy'] != '' && !empty($this->key['orderBy'])) {
+            $sqlQuery .= " ORDER BY " . implode(', ', $this->key['orderBy']);
         }
 
-        if (isset($this->key['limit']) && $this->key['offset'] != -1) {
-            $this->sqlQuery .= " LIMIT :offset, :limit";
-        }
-        return $this->sqlQuery;
+        // if (isset($this->key['limit'])) {
+        //     $sqlQuery .= " LIMIT :limit";
+        // }
+        return $sqlQuery;
     }
 }

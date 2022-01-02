@@ -32,10 +32,9 @@ class DataMapperConfiguration
     public function getDatabaseCredentials(string $driver): array
     {
         $connectionArray = [];
-        foreach ($this->credentials as $credential) {
-            if (array_key_exists($driver, $credential)) {
-                $connectionArray = $credential[$driver];
-            }
+        $this->isCredentialsValid($driver);
+        if (array_key_exists($driver, $this->credentials)) {
+            $connectionArray = $this->credentials[$driver];
         }
         return $connectionArray;
     }
@@ -56,7 +55,7 @@ class DataMapperConfiguration
         if (!is_array($this->credentials)) {
             throw new DataMapperInvalidArgumentException('Invalid credentials');
         }
-        if (!in_array($driver, array_keys($this->credentials[$driver]))) {
+        if (!array_key_exists($driver, $this->credentials)) {
             throw new DataMapperInvalidArgumentException('Invalid or unsupport database driver.');
         }
     }

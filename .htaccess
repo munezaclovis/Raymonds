@@ -1,2 +1,10 @@
-RewriteEngine on
-RewriteRule . index.php [L]
+RewriteEngine On
+RewriteCond %{HTTPS} !on 
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+RewriteCond %(REQUEST_FILENAME) !-f
+RewriteCond %(REQUEST_FILENAME) !-d
+
+RewriteCond $1 !^(index\.php|public|README\.md)
+
+RewriteRule ^(.*)$ ./index.php/$1 [QSA,L]

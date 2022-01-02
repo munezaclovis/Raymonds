@@ -55,7 +55,7 @@ class DatabaseConnection implements DatabaseConnectionInterface
         } catch (PDOException $exception) {
             throw new DatabaseConnectionException($exception->getMessage(), (int) $exception->getCode());
         }
-        return $this->connection;
+        return self::$connection;
     }
 
     /**

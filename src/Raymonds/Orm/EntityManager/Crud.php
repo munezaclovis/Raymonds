@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Raymonds\Orm\EntityManager;
 
+use Raymonds\Base\Exception\BaseInvalidArgumentException;
 use Raymonds\Orm\DataMapper\DataMapper;
 use Raymonds\Orm\QueryBuilder\QueryBuilder;
 use Raymonds\Orm\EntityManager\CrudInterface;
+use Raymonds\Traits\ArrayTrait;
 
 class Crud implements CrudInterface
 {
+    use ArrayTrait;
 
     /**
      * @var DataMapper
@@ -71,22 +74,30 @@ class Crud implements CrudInterface
         return $this->dataMapper->getLastId();
     }
 
+    public function isValidArguments(array $keys, array $args)
+    {
+        $this->isArray($args);
+        $this->isEmpty($args);
+        $this->hasKeys($keys, $args);
+    }
+
     /**
      * @inheritDoc
      *
      * @param array $fields
      * @return boolean
      */
-    public function create(array $fields = []): bool
+    public function save(array $args = []): bool
     {
         try {
-            $args = [
+            $this->isValidArguments(['fields'], $args);
+            $structure = [
                 'table' => $this->getTableName(),
                 'type' => 'insert',
-                'fields' => $fields,
+                'fields' => $args['fields'],
             ];
-            $query = $this->queryBuilder->buildQuery($args)->insertQuery();
-            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($fields));
+            $query = $this->queryBuilder->buildQuery($structure)->insertQuery();
+            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($args['fields']));
             if ($this->dataMapper->numRows() == 1) {
                 return true;
             }
@@ -104,21 +115,23 @@ class Crud implements CrudInterface
      * @param array $optional
      * @return array
      */
-    public function select(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array
+    public function select(array $args = []): array
     {
         try {
-            $args = [
+            $this->isValidArguments([], $args);
+            $structure = [
                 'table' => $this->getTableName(),
                 'type' => 'select',
-                'selectors' => $selectors,
-                'conditions' => $conditions,
-                'params' => $parameters,
+                'fields' => $args['fields'] ?? [],
+                'conditions' => $args['conditions']['OR'] ?? $args['conditions']['or'] ?? $args['conditions'] ?? [],
             ];
-            $query = $this->queryBuilder->buildQuery($args)->selectQuery();
-            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($conditions, $parameters));
-            if ($this->dataMapper->numRows() > 0) {
-                return $this->dataMapper->results();
-            }
+            $query = $this->queryBuilder->buildQuery($structure)->selectQuery();
+            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($args['conditions']['OR'] ?? $args['conditions']['or'] ?? $args['conditions'] ?? []));
+
+            if (isset($args['limit']) and $args['limit'] == 1)
+                return $this->dataMapper->result($args['class'] ?? null);
+            else
+                return $this->dataMapper->results($args['class'] ?? null);
         } catch (\Throwable $exception) {
             throw $exception;
         }
@@ -131,17 +144,18 @@ class Crud implements CrudInterface
      * @param string $primaryKey
      * @return boolean
      */
-    public function update(string $primaryKey, array $fields = []): bool
+    public function update(array $args = []): bool
     {
         try {
-            $args = [
+            $this->isValidArguments(['fields', 'primary_key'], $args);
+            $structure = [
                 'table' => $this->getTableName(),
                 'type' => 'update',
-                'fields' => $fields,
-                'primary_key' => $primaryKey,
+                'fields' => $args['fields'],
+                'primary_key' => $args['primary_key'],
             ];
-            $query = $this->queryBuilder->buildQuery($args)->updateQuery();
-            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($fields));
+            $query = $this->queryBuilder->buildQuery($structure)->updateQuery();
+            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($args['fields']));
             if ($this->dataMapper->numRows() > 0) {
                 return true;
             }
@@ -156,16 +170,17 @@ class Crud implements CrudInterface
      * @param array $conditions
      * @return boolean
      */
-    public function delete(array $conditions = []): bool
+    public function delete(array $args = []): bool
     {
         try {
-            $args = [
+            $this->isValidArguments(['conditions'], $args);
+            $structure = [
                 'table' => $this->getTableName(),
                 'type' => 'delete',
-                'conditions' => $conditions,
+                'conditions' => $args['conditions'],
             ];
-            $query = $this->queryBuilder->buildQuery($args)->deleteQuery();
-            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($conditions));
+            $query = $this->queryBuilder->buildQuery($structure)->deleteQuery();
+            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($args['conditions']));
             if ($this->dataMapper->numRows() > 0) {
                 return true;
             }
@@ -181,19 +196,20 @@ class Crud implements CrudInterface
      * @param array $conditions
      * @return array
      */
-    public function search(array $selectors = [], array $conditions = []): array
+    public function search(array $args = []): array
     {
         try {
-            $args = [
+            $this->isValidArguments(['conditions'], $args);
+            $structure = [
                 'table' => $this->getTableName(),
                 'type' => 'search',
-                'conditions' => $conditions,
-                'selectors' => $selectors,
+                'conditions' => $args['conditions'],
+                'selectors' => $args['selectors'] ?? [],
             ];
-            $query = $this->queryBuilder->buildQuery($args)->searchQuery();
-            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($conditions), true);
+            $query = $this->queryBuilder->buildQuery($structure)->searchQuery();
+            $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($args['conditions']), true);
             if ($this->dataMapper->numRows() > 0) {
-                return $this->dataMapper->results();
+                return $this->dataMapper->results($args['class'] ?? null);
             }
         } catch (\Throwable $exception) {
             throw $exception;
@@ -210,13 +226,13 @@ class Crud implements CrudInterface
     public function rawQuery(string $rawQuery, ?array $conditions = []): bool
     {
         try {
-            $args = [
+            $structure = [
                 'table' => $this->getTableName(),
                 'type' => 'raw',
                 'conditions' => $conditions,
                 'raw' => $rawQuery,
             ];
-            $query = $this->queryBuilder->buildQuery($args)->rawQuery();
+            $query = $this->queryBuilder->buildQuery($structure)->rawQuery();
             $this->dataMapper->persist($query, $this->dataMapper->buildQueryParameters($conditions));
             if ($this->dataMapper->numRows() > 0) {
                 return true;

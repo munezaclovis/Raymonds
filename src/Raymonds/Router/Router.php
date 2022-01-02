@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace Raymonds\Router;
 
-use Raymonds\Router\Exception\RouterBadMethodCallException;
-use Raymonds\Router\Exception\RouterException;
+use Raymonds\GlobalManager\GlobalManager;
 use Raymonds\Router\RouterInterface;
+use Raymonds\Router\Exception\RouterException;
+use Raymonds\Router\Exception\RouterBadMethodCallException;
+use Raymonds\Traits\StringTrait;
+use Raymonds\Yaml\Config;
 
 class Router implements RouterInterface
 {
+    use StringTrait;
     /**
      * array of routes from our routing table
      * @var array
      */
-    protected array $routes = [];
+    protected array $route = [];
 
     /**
      * Array of route parameters
@@ -22,67 +26,59 @@ class Router implements RouterInterface
      */
     protected array $params = [];
 
+    protected array $url;
+
     /** 
      * Add a suffix onto the controller name
      * @var string
      */
     protected string $controllerSuffix = 'controller';
 
-    /**
-     * @inheritDoc
-     */
-    public function add(string $route, array $params = []): void
+    public function __construct()
     {
-        $this->routes[$route] = $params;
+        $this->setUrl();
+        $this->setController();
+        $this->setAction();
+        $this->setParams();
     }
 
     /**
      * @inheritDoc
      */
-    public function dispatch(string $url): void
+    public function dispatch(): void
     {
-        if ($this->match($url)) {
-            $controllerString = $this->params['controller'];
-            $controllerString = $this->CamelCase($controllerString);
-            $controllerString = $this->getNamespace($controllerString);
+        $controllerString = $this->route['controller'];
+        $controllerString = $this->CamelCase($controllerString);
+        $controllerClass = $this->getNamespace($controllerString);
 
-            if (class_exists($controllerString)) {
-                $controllerObject = new $controllerString($this->params);
-                $action = $this->params['action'];
+        if (class_exists($controllerClass)) {
+            $controllerObject = new $controllerClass($this->route);
 
-                if (\is_callable([$controllerObject, $action])) {
-                    $controllerObject->$action();
-                } else {
-                    throw new RouterBadMethodCallException();
-                }
+            if (\is_callable([$controllerObject, $this->route['action']])) {
+                call_user_func_array([$controllerObject, $this->route['action']], $this->params);
             } else {
-                throw new RouterException();
+                throw new RouterBadMethodCallException('Page not found', 404);
             }
         } else {
-            throw new RouterException();
+            throw new RouterException('Page not found', 404);
         }
     }
 
-    /**
-     * Check if the route passed in the url matches what we have in our routes array
-     *
-     * @param string $url
-     * @return boolean
-     */
-    private function match(string $url): bool
+    public function setController()
     {
-        foreach ($this->routes as $route => $params) {
-            if (preg_match($route, $url, $matches)) {
-                foreach ($matches as $key => $param) {
-                    if (is_string($key)) {
-                        $params[$key] = $param;
-                    }
-                }
-                $this->params = $params;
-                return true;
-            }
-        }
-        return false;
+        $this->route['controller'] = $this->url[0] ?? Config::file('app')['defaults']['controller'] ?? "home";
+        array_shift($this->url);
+    }
+    public function setAction()
+    {
+        $this->route['action'] = $this->url[0] ?? Config::file('app')['defaults']['action'] ?? "index";
+        array_shift($this->url);
+    }
+
+    public function setParams()
+    {
+        $this->params = $this->url ?? [];
+        unset($this->url);
     }
 
     /**
@@ -108,6 +104,21 @@ class Router implements RouterInterface
         if (array_key_exists('namespace', $this->params)) {
             $namespace .= $this->params['namespace'] . '\\';
         }
-        return $namespace . $string;
+        return $namespace . $string . $this->CamelCase($this->controllerSuffix);
+    }
+
+    public function setUrl()
+    {
+        $url = mb_strtolower(GlobalManager::get('_SERVER')['REQUEST_URI']);
+        $scriptName = mb_strtolower(GlobalManager::get('_SERVER')['SCRIPT_NAME']);
+        $commonPart = trim($this->longest_common_substring($url, $scriptName));
+        $urlParts = str_ireplace($commonPart, '', $url);
+        if (!$urlParts == "") {
+            $urlParts = trim($urlParts, '/');
+            $urlArray = parse_url($urlParts);
+            $this->url = explode('/', $urlArray['path']);
+            return;
+        }
+        $this->url = [];
     }
 }

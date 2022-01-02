@@ -31,10 +31,9 @@ class DataRepository implements DataRepositoryInterface
             throw new DataRepositoryInvalidArgumentException('Argument should not be empty');
     }
 
-    public function find(int $id): array
+    public function find(array $args): array
     {
-        $this->isEmpty($id);
-        return $this->findOneBy(['id' => $id]);
+        return $this->entityManager->getCrud()->select($args);
     }
 
     public function findAll(): array
@@ -42,47 +41,47 @@ class DataRepository implements DataRepositoryInterface
         return $this->entityManager->getCrud()->select();
     }
 
-    public function findBy(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array
+    public function findById(int $id): array
     {
-        return $this->entityManager->getCrud()->select($selectors, $conditions, $parameters, $optional);
+        return $this->entityManager->getCrud()->select(['conditions' => ['id' => $id]]);
     }
 
-    public function findOneBy(array $conditions): array
+    public function findOneBy(array $args): array
     {
-        $this->isArray($conditions);
-        return $this->entityManager->getCrud()->select([], $conditions);
+        $this->isArray($args);
+        return $this->entityManager->getCrud()->select($args);
     }
 
-    public function findObjectBy(array $selectors = [], array $conditions = []): object
+    public function findObjectBy(array $args): object
     {
         return new stdClass;
         //return json_decode(json_encode($this->entityManager->getCrud()->select($selectors, $conditions)), false);
     }
 
-    public function search(array $selectors = [], array $conditions = [], array $parameters = [], array $optional = []): array
+    public function search(array $args): array
     {
-        $this->isArray($conditions);
-        return $this->entityManager->getCrud()->search($selectors, $conditions, $parameters, $optional);
+        $this->isArray($args);
+        return $this->entityManager->getCrud()->search($args);
     }
 
-    public function delete(array $conditions = []): bool
+    public function delete(array $args): bool
     {
-        $this->isArray($conditions);
-        return $this->entityManager->getCrud()->delete($conditions);
+        $this->isArray($args);
+        return $this->entityManager->getCrud()->delete($args);
     }
 
-    public function update(string $primaryKey, array $conditions = []): bool
+    public function update(array $args): bool
     {
-        $this->isArray($conditions);
-        return $this->entityManager->getCrud()->update($primaryKey, $conditions);
+        $this->isArray($args);
+        return $this->entityManager->getCrud()->update($args);
     }
 
-    public function findAndReturn(int $id, array $selectors = []): self
+    public function findAndReturn(array $args): self
     {
         return $this;
     }
 
-    public function searchByPaging(array $args, object $request): array
+    public function searchByPaging(array $args): array
     {
         return [];
     }

@@ -24,6 +24,6 @@ class BaseController
         if ($this->twig === null) {
             throw new BaseLogicException('A required package extension "twig/twig" is missing.');
         }
-        return $this->twig->getTemplate($template, $data);
+        return $this->twig->render($template, $data);
     }
 }

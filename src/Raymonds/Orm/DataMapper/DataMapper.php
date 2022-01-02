@@ -150,17 +150,17 @@ class DataMapper implements DataMapperInterface
     /**
      * @inheritDoc
      */
-    public function result(): Object
+    public function result(string $class = null): Object
     {
-        if ($this->statement) return $this->statement->fetch(PDO::FETCH_OBJ);
+        if ($this->statement) return $this->statement->fetch(PDO::FETCH_CLASS, $class);
     }
 
     /**
      * @inheritDoc
      */
-    public function results(): array
+    public function results(string $class = null): array
     {
-        if ($this->statement) return $this->statement->fetchAll(PDO::FETCH_OBJ);
+        if ($this->statement) return $this->statement->fetchAll(PDO::FETCH_CLASS, '\\' . $class);
     }
 
     /**

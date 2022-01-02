@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Raymonds\Base;
 
 use Twig\Environment;
+use Raymonds\Twig\TwigExtension;
+use Raymonds\Yaml\Config;
 use Twig\Loader\FilesystemLoader;
 use Twig\Extension\DebugExtension;
 
@@ -14,11 +16,16 @@ class BaseView
     {
         static $twig;
         if ($twig === null) {
-            $loader = new FilesystemLoader('templates', TEMPLATES_PATH);
-            $twig = new Environment($loader, array());
+            $loader = new FilesystemLoader(ROOT . DS . 'App' . DS . 'View');
+            $twig = new Environment($loader, Config::file('twig'));
             $twig->addExtension(new DebugExtension);
             $twig->addExtension(new TwigExtension);
         }
         return $twig->render($template, $data);
+    }
+
+    public function render(string $template, array $data = [])
+    {
+        echo $this->getTemplate($template, $data);
     }
 }
